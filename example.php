@@ -9,7 +9,7 @@ declare(strict_types = 1);
 require_once __DIR__ . '/src/EncryptionHelper.php';
 $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
 print '$encryptedData = ' . $encryptedData . PHP_EOL;
-$eh = new \DataAccess\EncryptionHelper($encryptedData);
+$eh = new \EncryptionHelper\EncryptionHelper($encryptedData);
 $toString = $eh . '';
 print '$toString = ' . $toString . PHP_EOL;
 $encrypted = $eh->encrypt($toString);
