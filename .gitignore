@@ -1,0 +1,13 @@
+*.7z
+*.bz2
+*.bzip
+*.gz
+*.log
+*.zip
+.idea/
+/vendor/
+composer.lock
+composer.phar
+junk*.*
+test*.*
+phpspec.yml
