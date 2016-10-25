@@ -12,7 +12,7 @@ declare(strict_types = 1);
  * @license   GPL-3.0+
  * @link      http://spdx.org/licenses/GPL-3.0.html
  */
-namespace DataAccess;
+namespace EncryptionHelper;
 
 class EncryptionHelper
 {
