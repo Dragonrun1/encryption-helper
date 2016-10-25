@@ -1,0 +1,26 @@
+{
+    "name": "dragonrun1/encryption-helper",
+    "description": "Encryption helper class modeled after c# class of the same name",
+    "type": "library",
+    "license": "GPL-3.0+",
+    "authors": [
+        {
+            "name": "Michael Cummings",
+            "email": "mgcummings@yahoo.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "EncryptionHelper\\": [
+                "src/"
+            ]
+        }
+    },
+    "config": {
+        "optimize-autoloader": true
+    },
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">7.0,<7.2"
+    }
+}
