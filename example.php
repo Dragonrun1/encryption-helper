@@ -6,7 +6,7 @@ declare(strict_types = 1);
  * Date: 10/24/2016
  * Time: 3:47 PM
  */
-require_once __DIR__ . '/EncryptionHelper.php';
+require_once __DIR__ . '/src/EncryptionHelper.php';
 $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
 print '$encryptedData = ' . $encryptedData . PHP_EOL;
 $eh = new \DataAccess\EncryptionHelper($encryptedData);
