@@ -135,7 +135,7 @@ class EncryptionHelper
      *
      * @return bool
      */
-    public function hasQuery(string $name)
+    public function hasQuery(string $name): bool
     {
         return array_key_exists($name, $this->queries);
     }
@@ -276,7 +276,7 @@ class EncryptionHelper
         return $this;
     }
     /**
-     * Used to add padding to the data being encrypt in the unique way .NET has of doing so.
+     * Used to add PKCS7 padding to the data being encrypt.
      *
      * @param string $data
      *
@@ -309,13 +309,14 @@ class EncryptionHelper
         return sprintf('%X', $checksum);
     }
     /**
+     * Converts 2 digit hex encoding bytes in a binary string.
+     *
      * @param string $data
      *
      * @return string
      */
     private function getBytes(string $data): string
     {
-        // getString() encodes the hex-numbers with two digits
         $results = '';
         foreach (str_split($data, 2) as $chunk) {
             $results .= chr(hexdec($chunk));
@@ -337,6 +338,8 @@ class EncryptionHelper
         return substr($this->key, 0, $this->keySize);
     }
     /**
+     * Used to change a binary string one byte at a time to hex encoding string.
+     *
      * @param string $data
      *
      * @return string
@@ -350,7 +353,7 @@ class EncryptionHelper
         return $results;
     }
     /**
-     * Remove the .NET unique padding from decrypted string.
+     * Remove the PKCS7 padding from decrypted string.
      *
      * @param string $data
      *
@@ -380,14 +383,13 @@ class EncryptionHelper
     /**
      * Initialization vector use for encryption and decryption.
      *
-     * Change the following vector to ensure uniqueness
-     * Must be correct length for the cipher used.
+     * Should be a binary string of the correct length for the cipher used.
      *
      * Originally was going to use array like from c# but string is easier to use direct in mcrypt.
      * $_keyBytes = [0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18];
      *
      * @internal string $keyBytes Original c# code called it _keyBytes and had a _keyString as well which was
-     * confusing so renamed them both to match terms used in PHP documentation.
+     * confusing so renamed them both to match terms used in most encryption documentation.
      * @var string $initVector
      */
     private $initVector;
