@@ -19,17 +19,17 @@ class EncryptionHelper
     /**
      * EncryptionHelper constructor.
      *
-     * Constructor is very fat for what is usually considered good practice in PHP but left it alone to make it easier
-     * to compare with original c# version.
+     * Constructor is very fat for what is usually considered good practice in PHP but re-factored most of it out into
+     * another method while still keeping code comparable to the same code in c# original.
      *
-     * @param string $encryptedData
-     * @param string $key
-     * @param string $initVector
+     * @param string $encryptedData Data to be decrypted into query list
+     * @param string $key Encryption key
+     * @param string $initVector Encryption initialization vector
      *
      * @uses EncryptionHelper::setInitVector()
      * @uses EncryptionHelper::setKey()
      * @uses EncryptionHelper::decrypt()
-     * @uses EncryptionHelper::computedCheckSum()
+     * @uses EncryptionHelper::processQueryString()
      * @throws \RangeException
      * @throws \RuntimeException
      */
@@ -42,27 +42,7 @@ class EncryptionHelper
              ->setKey($key);
         // Decrypt string
         $data = $this->decrypt($encryptedData);
-        // Parse out name/value pairs and add to dictionary
-        $checksum = null;
-        $args = explode('&', $data);
-        /**
-         * @var string $arg
-         */
-        foreach ($args as $arg) {
-            $i = strpos($arg, '=');
-            if (false !== $i) {
-                $name = substr($arg, 0, $i);
-                $value = substr($arg, $i + 1);
-                if ($name === $this->checksumName) {
-                    $checksum = $value;
-                } else {
-                    $this->queries[urldecode($name)] = urldecode($value);
-                }
-            }
-        }
-        if ($checksum === null || $checksum !== $this->computedCheckSum()) {
-            $this->queries = [];
-        }
+        $this->processQueryString($data);
     }
     /**
      * Returns query string using current contents.
@@ -91,6 +71,9 @@ class EncryptionHelper
         foreach ($this->queries as $name => $value) {
             $content[] = sprintf('%s=%s', urlencode($name), urlencode($value));
         }
+        /*
+         * Probably bug in original c# code since these should also be url encoded but not changing without feedback.
+         */
         $content[] = sprintf('%s=%s', $this->checksumName, $this->computedCheckSum());
         return implode('&', $content);
     }
@@ -155,6 +138,44 @@ class EncryptionHelper
     public function hasQuery(string $name)
     {
         return array_key_exists($name, $this->queries);
+    }
+    /**
+     * Parse out name/value pairs and add to query list.
+     *
+     * @param string $data
+     *
+     * @uses EncryptionHelper::computedCheckSum()
+     */
+    public function processQueryString(string $data)
+    {
+        $checksum = null;
+        $args = explode('&', $data);
+        /**
+         * @var string $arg
+         */
+        foreach ($args as $arg) {
+            $i = strpos($arg, '=');
+            if (false !== $i) {
+                /*
+                 * Url decoding should probably happen here so everything include the checksum are done correctly but
+                 * didn't change to be compatible with C# original code awaiting feedback.
+                 */
+                $name = substr($arg, 0, $i);
+                /*
+                 * Probably bug in original c# code since this should also be url decoded but not changing without
+                 * feedback.
+                 */
+                $value = substr($arg, $i + 1);
+                if ($this->checksumName === $name) {
+                    $checksum = $value;
+                } else {
+                    $this->queries[urldecode($name)] = urldecode($value);
+                }
+            }
+        }
+        if ($checksum === null || $checksum !== $this->computedCheckSum()) {
+            $this->queries = [];
+        }
     }
     /**
      * Allows remove existing query from content.
@@ -296,9 +317,6 @@ class EncryptionHelper
     {
         // getString() encodes the hex-numbers with two digits
         $results = '';
-//        for ($i = 0, $dataLen = strlen($data); $i < $dataLen; $i += 2) {
-//            $results .= pack('H', substr($data, $i, 2));
-//        }
         foreach (str_split($data, 2) as $chunk) {
             $results .= chr(hexdec($chunk));
         }
