@@ -1,12 +1,13 @@
 {
     "name": "dragonrun1/encryption-helper",
-    "description": "Encryption helper class modeled after c# class of the same name",
+    "description": "Use to help with the encryption and decryption of GET queries",
     "type": "library",
-    "license": "GPL-3.0+",
+    "license": "GPL-2.0",
     "authors": [
         {
             "name": "Michael Cummings",
-            "email": "mgcummings@yahoo.com"
+            "email": "mgcummings@yahoo.com",
+            "role": "Developer"
         }
     ],
     "autoload": {
