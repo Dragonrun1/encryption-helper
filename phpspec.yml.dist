@@ -1,0 +1,12 @@
+code_generation: false
+formatter.name: nyan.cat
+stop-on-failure: true
+suites:
+    eh_suite:
+        namespace: EncryptionHelper
+        psr4_prefix: EncryptionHelper
+        spec_path: %paths.config%/specs
+        spec_prefix: Spec
+        src_path: %paths.config%/src
+extensions:
+    PhpSpec\NyanFormattersExtension\Extension: ~
