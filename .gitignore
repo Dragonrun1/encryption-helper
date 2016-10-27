@@ -5,6 +5,7 @@
 *.log
 *.zip
 .idea/
+build/
 /vendor/
 composer.lock
 composer.phar
