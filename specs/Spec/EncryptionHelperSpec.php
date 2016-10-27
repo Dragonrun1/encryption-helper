@@ -53,6 +53,11 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->encrypt($given)
              ->shouldReturn($expected);
     }
+    public function it_should_return_false_from_has_query_when_name_does_not_exists()
+    {
+        $this->hasQuery('Stars')
+             ->shouldReturn(false);
+    }
     public function it_should_return_false_from_remove_query_when_name_does_not_exists()
     {
         $this->removeQuery('Stars')
@@ -75,26 +80,42 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->__toString()
              ->shouldReturn($expected);
     }
-    public function it_should_return_true_from_remove_query_when_name_exists()
-    {
-        $this->addQuery('Stars', '5');
-        $this->removeQuery('Stars')
-             ->shouldReturn(true);
-    }
-    public function let()
-    {
-        $this->beConstructedWith($this->encryptedData);
-    }
-    protected $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
-    public function it_should_return_false_from_has_query_when_name_does_not_exists()
-    {
-        $this->hasQuery('Stars')
-             ->shouldReturn(false);
-    }
     public function it_should_return_true_from_has_query_when_name_exists()
     {
         $this->addQuery('Stars', '5');
         $this->hasQuery('Stars')
              ->shouldReturn(true);
     }
+    public function it_should_return_true_from_remove_query_when_name_exists()
+    {
+        $this->addQuery('Stars', '5');
+        $this->removeQuery('Stars')
+             ->shouldReturn(true);
+    }
+    public function it_throws_exception_when_iv_given_to_set_init_vector_is_to_short()
+    {
+        $given = 'a';
+        $message = sprintf('Initialization vector must be at least %s characters long', 8);
+        $this->shouldThrow(new \RangeException($message))
+             ->during('setInitVector', [$given]);
+    }
+    public function it_throws_exception_when_key_given_to_set_key_is_to_short()
+    {
+        $given = 'a';
+        $message = sprintf('Key must be at least %s characters long', 8);
+        $this->shouldThrow(new \RangeException($message))
+             ->during('setKey', [$given]);
+    }
+    public function it_throws_exception_when_unknown_cipher_is_given_to_set_cipher()
+    {
+        $given = 'IDoNotExist';
+        $message = sprintf('Cipher %s is not known', $given);
+        $this->shouldThrow(new \RangeException($message))
+             ->during('setCipher', [$given]);
+    }
+    public function let()
+    {
+        $this->beConstructedWith($this->encryptedData);
+    }
+    protected $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
 }
