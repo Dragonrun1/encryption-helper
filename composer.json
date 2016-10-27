@@ -17,6 +17,13 @@
             ]
         }
     },
+    "autoload-dev": {
+        "psr-0": {
+            "Spec\\EncryptionHelper\\": [
+                "specs/"
+            ]
+        }
+    },
     "config": {
         "optimize-autoloader": true
     },
@@ -24,5 +31,10 @@
     "require": {
         "ext-mcrypt": "*",
         "php": ">7.0,<7.2"
+    },
+    "require-dev": {
+        "henrikbjorn/phpspec-code-coverage": "~3.0.1",
+        "phpspec/nyan-formatters": "~2.0.0",
+        "phpspec/phpspec": "~3.0.0"
     }
 }
