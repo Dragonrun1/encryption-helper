@@ -28,7 +28,8 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->hasQuery('Stars')
              ->shouldReturn(false);
         $this->addQuery('Stars', '5');
-        $this->hasQuery('Stars')->shouldReturn(true);
+        $this->hasQuery('Stars')
+             ->shouldReturn(true);
     }
     public function it_should_be_possible_to_remove_existing_queries_from_list()
     {
@@ -51,6 +52,14 @@ class EncryptionHelperSpec extends ObjectBehavior
         $given = 'Stars=5&__$$=14D';
         $this->processQueryString($given);
         $this->hasQuery('Stars')
+             ->shouldReturn(false);
+    }
+    public function it_should_clear_query_list_in_process_query_string_when_data_is_empty()
+    {
+        $this->hasQuery('Rating')
+             ->shouldReturn(true);
+        $this->processQueryString('');
+        $this->hasQuery('Rating')
              ->shouldReturn(false);
     }
     public function it_should_clear_query_list_in_process_query_string_when_data_is_missing_checksum()
@@ -78,9 +87,9 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->processQueryString($given);
         $this->hasQuery('__$$')
              ->shouldReturn(false);
-        $given = 'Rating=80&Stars=5&__$$=26F';
         $this->hasQuery('Stars')
              ->shouldReturn(false);
+        $given = 'Rating=80&Stars=5&__$$=26F';
         $this->processQueryString($given);
         $this->hasQuery('__$$')
              ->shouldReturn(false);
@@ -97,6 +106,11 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->encrypt($given)
              ->shouldReturn($expected);
     }
+    public function it_should_return_empty_string_from_decrypt_when_data_is_empty()
+    {
+        $this->decrypt('')
+             ->shouldReturn('');
+    }
     public function it_should_return_false_from_has_query_when_name_does_not_exists()
     {
         $this->hasQuery('Stars')
@@ -107,7 +121,7 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->removeQuery('Stars')
              ->shouldReturn(false);
     }
-    public function it_should_return_query_list_from_decrypt()
+    public function it_should_return_query_list_from_decrypt_when_data_is_good()
     {
         $expected = 'Rating=80&__$$=14D';
         $this->decrypt($this->encryptedData)
@@ -136,36 +150,36 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->removeQuery('Stars')
              ->shouldReturn(true);
     }
-    public function it_throws_exception_when_iv_given_to_set_init_vector_is_to_short()
+    public function it_throws_exception_in_add_query_when_empty_name_is_given()
     {
-        $given = 'a';
-        $message = sprintf('Initialization vector must be at least %s characters long', 8);
-        $this->shouldThrow(new \RangeException($message))
-             ->during('setInitVector', [$given]);
+        $message = $message = 'Query name can not be empty';
+        $this->shouldThrow(new \OutOfBoundsException($message))
+             ->during('addQuery', ['', 'test']);
     }
-    public function it_throws_exception_when_key_given_to_set_key_is_to_short()
-    {
-        $given = 'a';
-        $message = sprintf('Key must be at least %s characters long', 8);
-        $this->shouldThrow(new \RangeException($message))
-             ->during('setKey', [$given]);
-    }
-    public function it_throws_exception_when_unknown_cipher_is_given_to_set_cipher()
+    public function it_throws_exception_in_set_cipher_when_given_unknown_cipher()
     {
         $given = 'IDoNotExist';
         $message = sprintf('Cipher %s is not known', $given);
         $this->shouldThrow(new \RangeException($message))
              ->during('setCipher', [$given]);
     }
+    public function it_throws_exception_in_set_init_vector_when_iv_is_to_short()
+    {
+        $given = 'a';
+        $message = sprintf('Initialization vector must be at least %s characters long', 8);
+        $this->shouldThrow(new \RangeException($message))
+             ->during('setInitVector', [$given]);
+    }
+    public function it_throws_exception_in_set_key_when_key_is_to_short()
+    {
+        $given = 'a';
+        $message = sprintf('Key must be at least %s characters long', 8);
+        $this->shouldThrow(new \RangeException($message))
+             ->during('setKey', [$given]);
+    }
     public function let()
     {
         $this->beConstructedWith($this->encryptedData);
     }
     protected $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
-    public function it_throws_exception_when_empty_name_is_given_to_add_query()
-    {
-        $message = $message = 'Query name can not be empty';
-        $this->shouldThrow(new \OutOfBoundsException($message))
-             ->during('addQuery', ['', 'test']);
-    }
 }

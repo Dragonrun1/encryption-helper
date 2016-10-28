@@ -37,6 +37,9 @@ declare(strict_types = 1);
  */
 namespace EncryptionHelper;
 
+/**
+ * Class EncryptionHelper
+ */
 class EncryptionHelper
 {
     /**
@@ -49,10 +52,10 @@ class EncryptionHelper
      * @param string $key           Encryption key
      * @param string $initVector    Encryption initialization vector
      *
-     * @uses EncryptionHelper::setInitVector()
-     * @uses EncryptionHelper::setKey()
      * @uses EncryptionHelper::decrypt()
      * @uses EncryptionHelper::processQueryString()
+     * @uses EncryptionHelper::setInitVector()
+     * @uses EncryptionHelper::setKey()
      * @throws \RangeException
      * @throws \RuntimeException
      */
@@ -63,9 +66,7 @@ class EncryptionHelper
     ) {
         $this->setInitVector($initVector)
              ->setKey($key);
-        // Decrypt string
-        $data = $this->decrypt($encryptedData);
-        $this->processQueryString($data);
+        $this->processQueryString($this->decrypt($encryptedData));
     }
     /**
      * Returns query string using current contents.
@@ -103,6 +104,8 @@ class EncryptionHelper
      *
      * @param string $name
      * @param string $value
+     *
+     * @throws \OutOfBoundsException
      */
     public function addQuery(string $name, string $value)
     {
@@ -117,21 +120,25 @@ class EncryptionHelper
      *
      * Made this public to easy testing plus allows the class to be used in ways the original c# class wasn't.
      *
-     * @param string $text
+     * @param string $data
      *
      * @return string
      * @uses EncryptionHelper::getBytes()
+     * @uses EncryptionHelper::getInitVector()
+     * @uses EncryptionHelper::getKey()
      * @uses EncryptionHelper::removePadding()
      */
-    public function decrypt(string $text): string
+    public function decrypt(string $data): string
     {
-        $decrypted = mcrypt_decrypt($this->cipher, $this->getKey(), $this->getBytes($text), MCRYPT_MODE_CBC,
+        if ('' === $data) {
+            return '';
+        }
+        $decrypted = mcrypt_decrypt($this->cipher, $this->getKey(), $this->getBytes($data), MCRYPT_MODE_CBC,
             $this->getInitVector());
         if (false === $decrypted) {
             return '';
         }
-        $decrypted = $this->removePadding($decrypted);
-        return $decrypted;
+        return $this->removePadding($decrypted);
     }
     /**
      * Used to encrypt a string.
@@ -142,6 +149,8 @@ class EncryptionHelper
      *
      * @return string
      * @uses EncryptionHelper::addPadding()
+     * @uses EncryptionHelper::getInitVector()
+     * @uses EncryptionHelper::getKey()
      * @uses EncryptionHelper::getString()
      */
     public function encrypt(string $text): string
@@ -169,10 +178,14 @@ class EncryptionHelper
      *
      * @param string $data
      *
+     * @uses EncryptionHelper::addQuery()
      * @uses EncryptionHelper::computedCheckSum()
      */
     public function processQueryString(string $data)
     {
+        if('' === $data) {
+            $this->queries = [];
+        }
         $checksum = null;
         /*
          * Original c# code url decoded everything but checksum name and value individually but its easier and better to
@@ -215,6 +228,8 @@ class EncryptionHelper
      *
      * @return $this Fluent interface
      * @throws \RangeException
+     * @uses EncryptionHelper::setInitVector()
+     * @uses EncryptionHelper::setKey()
      */
     public function setCipher(string $value = MCRYPT_DES)
     {
