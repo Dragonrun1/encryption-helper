@@ -7,6 +7,7 @@ declare(strict_types = 1);
  * Time: 3:47 PM
  */
 require_once __DIR__ . '/src/EncryptionHelper.php';
+print 'For more complete testing examples see the PHPSpec in specs/Spec/' . PHP_EOL;
 $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
 print '$encryptedData = ' . $encryptedData . PHP_EOL;
 $eh = new \EncryptionHelper\EncryptionHelper($encryptedData);
