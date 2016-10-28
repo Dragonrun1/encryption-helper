@@ -176,6 +176,16 @@ class EncryptionHelper
     /**
      * Parse out name/value pairs and add to query list.
      *
+     * This method has some inherit limitations in handling query list which are:
+     *
+     *   * Does not work with array type queries like might be used in multiple chose html forms.
+     *     This may not be a issue in the original domain does not need to qork with them.
+     *   * Checksum is not up to protecting from intentional spoofing and has a bad coding smell to it.
+     *     It would be a good idea to replace it with a hashing function like hash_hmac() that was intended for this
+     *     purpose.
+     *     Left it 'as is' for backward compatibility reasons only and would suggest replacing it if original domain
+     *     allows it to be changed.
+     *
      * @param string $data
      *
      * @uses EncryptionHelper::addQuery()
