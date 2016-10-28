@@ -46,8 +46,8 @@ class EncryptionHelper
      * another method while still keeping code comparable to the same code in c# original.
      *
      * @param string $encryptedData Data to be decrypted into query list
-     * @param string $key Encryption key
-     * @param string $initVector Encryption initialization vector
+     * @param string $key           Encryption key
+     * @param string $initVector    Encryption initialization vector
      *
      * @uses EncryptionHelper::setInitVector()
      * @uses EncryptionHelper::setKey()
@@ -90,15 +90,13 @@ class EncryptionHelper
          * $content .= sprintf('%s=%s', $this->_checksumKey, $this->computedCheckSum());
          * return $content;
          */
-        $content = [];
-        foreach ($this->queries as $name => $value) {
-            $content[] = sprintf('%s=%s', urlencode($name), urlencode($value));
-        }
         /*
-         * Probably bug in original c# code since these should also be url encoded but not changing without feedback.
+         * Probably bug in original c# code since checksum should also be url encoded but not changing now since it
+         * would be Backwards Compatibility break to do so.
          */
-        $content[] = sprintf('%s=%s', $this->checksumName, $this->computedCheckSum());
-        return implode('&', $content);
+//        $checksum = http_build_query([$this->checksumName, $this->computedCheckSum()]);
+        $checksum = sprintf('%s=%s', $this->checksumName, $this->computedCheckSum());
+        return implode('&', [http_build_query($this->queries), $checksum]);
     }
     /**
      * Allows add new queries to contents.
@@ -108,6 +106,10 @@ class EncryptionHelper
      */
     public function addQuery(string $name, string $value)
     {
+        if ('' === $name) {
+            $message = 'Query name can not be empty';
+            throw new \OutOfBoundsException($message);
+        }
         $this->queries[$name] = $value;
     }
     /**
@@ -172,27 +174,20 @@ class EncryptionHelper
     public function processQueryString(string $data)
     {
         $checksum = null;
-        $args = explode('&', $data);
-        /**
-         * @var string $arg
+        /*
+         * Original c# code url decoded everything but checksum name and value individually but its easier and better to
+         * do it here instead with PHP and makes no difference to checksum.
+         * If the original code had done this as well the issue with the checksum name and value not being encoded
+         * correctly probably would have been caught.
          */
+        $args = explode('&', urldecode($data));
         foreach ($args as $arg) {
-            $i = strpos($arg, '=');
-            if (false !== $i) {
-                /*
-                 * Url decoding should probably happen here so everything include the checksum are done correctly but
-                 * didn't change to be compatible with C# original code awaiting feedback.
-                 */
-                $name = substr($arg, 0, $i);
-                /*
-                 * Probably bug in original c# code since this should also be url decoded but not changing without
-                 * feedback.
-                 */
-                $value = substr($arg, $i + 1);
-                if ($this->checksumName === $name) {
-                    $checksum = $value;
+            if (false !== strpos($arg, '=')) {
+                list($name, $value) = explode('=', $arg);
+                if ($this->checksumName !== $name) {
+                    $this->addQuery($name, $value);
                 } else {
-                    $this->queries[urldecode($name)] = urldecode($value);
+                    $checksum = $value;
                 }
             }
         }
@@ -307,7 +302,6 @@ class EncryptionHelper
      */
     private function addPadding(string $data): string
     {
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
         $size = mcrypt_get_block_size($this->cipher, MCRYPT_MODE_CBC);
         $padding = $size - (strlen($data) % $size);
         return $data . str_repeat(chr($padding), $padding);
@@ -384,12 +378,11 @@ class EncryptionHelper
      */
     private function removePadding(string $data): string
     {
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
         $size = mcrypt_get_block_size($this->cipher, MCRYPT_MODE_CBC) + 1;
         $padding = substr($data, -1);
-        // Pads to next block so no more than $size chars.
+        // Pads to next block so no more than $size chars added.
         if ($size >= ord($padding)) {
-            return rtrim($data, $padding);
+            $data = rtrim($data, $padding);
         }
         return $data;
     }

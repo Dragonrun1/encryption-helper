@@ -25,23 +25,67 @@ class EncryptionHelperSpec extends ObjectBehavior
     }
     public function it_should_be_possible_to_add_new_queries_to_list()
     {
+        $this->hasQuery('Stars')
+             ->shouldReturn(false);
         $this->addQuery('Stars', '5');
-        $expected = 'Rating=80&Stars=5&__$$=26F';
-        $this->__toString()
-             ->shouldReturn($expected);
+        $this->hasQuery('Stars')->shouldReturn(true);
     }
     public function it_should_be_possible_to_remove_existing_queries_from_list()
     {
         $this->addQuery('Stars', '5');
-        $expected = 'Rating=80&Stars=5&__$$=26F';
-        $this->__toString()
-             ->shouldReturn($expected);
+        $this->hasQuery('Stars')
+             ->shouldReturn(true);
         $this->removeQuery('Stars')
              ->shouldReturn(true);
-        $expected = 'Rating=80&__$$=14D';
-        /** @noinspection ImplicitMagicMethodCallInspection */
-        $this->__toString()
-             ->shouldReturn($expected);
+        $this->hasQuery('Stars')
+             ->shouldReturn(false);
+    }
+    public function it_should_clear_query_list_in_process_query_string_when_data_has_bad_checksum()
+    {
+        $this->hasQuery('Rating')
+             ->shouldReturn(true);
+        $given = 'Rating=80&__$$=26F';
+        $this->processQueryString($given);
+        $this->hasQuery('Rating')
+             ->shouldReturn(false);
+        $given = 'Stars=5&__$$=14D';
+        $this->processQueryString($given);
+        $this->hasQuery('Stars')
+             ->shouldReturn(false);
+    }
+    public function it_should_clear_query_list_in_process_query_string_when_data_is_missing_checksum()
+    {
+        $this->hasQuery('Rating')
+             ->shouldReturn(true);
+        $given = 'Rating=80';
+        $this->processQueryString($given);
+        $this->hasQuery('Rating')
+             ->shouldReturn(false);
+        $given = 'Stars=5';
+        $this->processQueryString($given);
+        $this->hasQuery('Stars')
+             ->shouldReturn(false);
+//        $expected = 'Rating=80&__$$=14D';
+//        $expected = 'Rating=80&Stars=5&__$$=26F';
+//        $this->__toString()
+//             ->shouldReturn($expected);
+    }
+    public function it_should_never_add_checksum_to_query_list_in_process_query_string()
+    {
+        $this->hasQuery('__$$')
+             ->shouldReturn(false);
+        $given = 'Rating=80&__$$=14D';
+        $this->processQueryString($given);
+        $this->hasQuery('__$$')
+             ->shouldReturn(false);
+        $given = 'Rating=80&Stars=5&__$$=26F';
+        $this->hasQuery('Stars')
+             ->shouldReturn(false);
+        $this->processQueryString($given);
+        $this->hasQuery('__$$')
+             ->shouldReturn(false);
+        $this->hasQuery('Stars')
+             ->shouldReturn(true);
     }
     public function it_should_return_cipher_text_from_encrypt()
     {
@@ -118,4 +162,10 @@ class EncryptionHelperSpec extends ObjectBehavior
         $this->beConstructedWith($this->encryptedData);
     }
     protected $encryptedData = 'F7EBC908B106D4282FA705D0EED915DBE002774B1A152DCC';
+    public function it_throws_exception_when_empty_name_is_given_to_add_query()
+    {
+        $message = $message = 'Query name can not be empty';
+        $this->shouldThrow(new \OutOfBoundsException($message))
+             ->during('addQuery', ['', 'test']);
+    }
 }
