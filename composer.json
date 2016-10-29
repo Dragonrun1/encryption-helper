@@ -30,7 +30,7 @@
     "minimum-stability": "stable",
     "require": {
         "ext-mcrypt": "*",
-        "php": ">7.0,<7.2"
+        "php": ">7.0,<7.1"
     },
     "require-dev": {
         "henrikbjorn/phpspec-code-coverage": "~3.0.1",
