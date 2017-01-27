@@ -33,7 +33,6 @@
         }
     },
     "minimum-stability": "stable",
-    ,
     "replace": {
         "dragonrun1/encryption-helper": "0.*-dev"
     },
