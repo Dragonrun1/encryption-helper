@@ -1,5 +1,5 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
 /**
  * Contains class EncryptionHelper.
  *
@@ -35,6 +35,7 @@ declare(strict_types = 1);
  * @copyright 2016 Michael Cummings
  * @license   GPL-2.0
  */
+
 namespace EncryptionHelper;
 
 /**
@@ -133,8 +134,8 @@ class EncryptionHelper
         if ('' === $data) {
             return '';
         }
-        $decrypted = mcrypt_decrypt($this->cipher, $this->getKey(), $this->getBytes($data), MCRYPT_MODE_CBC,
-            $this->getInitVector());
+        $decrypted = openssl_decrypt($this->getBytes($data), $this->cipher, $this->getKey(),
+            OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING, $this->getInitVector());
         if (false === $decrypted) {
             return '';
         }
@@ -156,7 +157,9 @@ class EncryptionHelper
     public function encrypt(string $text): string
     {
         $text = $this->addPadding($text);
-        $encrypted = mcrypt_encrypt($this->cipher, $this->getKey(), $text, MCRYPT_MODE_CBC, $this->getInitVector());
+        /** @noinspection EncryptionInitializationVectorRandomnessInspection */
+        $encrypted = openssl_encrypt($text, $this->cipher, $this->getKey(), OPENSSL_RAW_DATA | OPENSSL_ZERO_PADDING,
+            $this->getInitVector());
         if (false === $encrypted) {
             return '';
         }
@@ -193,7 +196,7 @@ class EncryptionHelper
      */
     public function processQueryString(string $data)
     {
-        if('' === $data) {
+        if ('' === $data) {
             $this->queries = [];
         }
         $checksum = null;
@@ -241,13 +244,14 @@ class EncryptionHelper
      * @uses EncryptionHelper::setInitVector()
      * @uses EncryptionHelper::setKey()
      */
-    public function setCipher(string $value = MCRYPT_DES)
+    public function setCipher(string $value = 'DES-CBC')
     {
-        if (!in_array($value, mcrypt_list_algorithms(), true)) {
+        if (!in_array($value, openssl_get_cipher_methods(), true)) {
             $message = sprintf('Cipher %s is not known', $value);
             throw new \RangeException($message);
         }
         $current = $this->cipher;
+        $this->cipher = $value;
         try {
             $this->setKey($this->key)
                  ->setInitVector($this->initVector);
@@ -257,7 +261,6 @@ class EncryptionHelper
                 . ' compatible with new cipher';
             throw new \RangeException($message, 1, $exc);
         }
-        $this->cipher = $value;
         return $this;
     }
     /**
@@ -275,7 +278,7 @@ class EncryptionHelper
      */
     public function setInitVector(string $value)
     {
-        $size = mcrypt_get_iv_size($this->cipher, MCRYPT_MODE_CBC);
+        $size = openssl_cipher_iv_length($this->cipher);
         if (false === $size) {
             $message = 'Failed to get required vector size';
             throw new \RuntimeException($message);
@@ -295,6 +298,10 @@ class EncryptionHelper
      *
      * NOTE: Use of a plain text key is not a good idea. It is much better to use some sort of binary string key.
      *
+     * NOTE: With switch to openssl there is no longer a way to get the actual required key size or the block length so
+     * fall back to using iv length instead. Not to get into the long technical details why but for all expected block
+     * ciphers iv length, key length, and block length should always be the same so don't expect this to be an issue.
+     *
      * Through not in the original c# class this makes it nicer to re-use in other ways.
      *
      * @param string $value
@@ -305,7 +312,7 @@ class EncryptionHelper
      */
     public function setKey(string $value)
     {
-        $size = mcrypt_get_key_size($this->cipher, MCRYPT_MODE_CBC);
+        $size = openssl_cipher_iv_length($this->cipher);
         if (false === $size) {
             $message = 'Failed to get required key size';
             throw new \RuntimeException($message);
@@ -321,13 +328,17 @@ class EncryptionHelper
     /**
      * Used to add PKCS7 padding to the data being encrypt.
      *
+     * NOTE: With switch to openssl there is no longer a way to get the actual required key size or the block length so
+     * fall back to using iv length instead. Not to get into the long technical details why but for all expected block
+     * ciphers iv length, key length, and block length should always be the same so don't expect this to be an issue.
+     *
      * @param string $data
      *
      * @return string
      */
     private function addPadding(string $data): string
     {
-        $size = mcrypt_get_block_size($this->cipher, MCRYPT_MODE_CBC);
+        $size = openssl_cipher_iv_length($this->cipher);
         $padding = $size - (strlen($data) % $size);
         return $data . str_repeat(chr($padding), $padding);
     }
@@ -397,13 +408,17 @@ class EncryptionHelper
     /**
      * Remove the PKCS7 padding from decrypted string.
      *
+     * NOTE: With switch to openssl there is no longer a way to get the actual required key size or the block length so
+     * fall back to using iv length instead. Not to get into the long technical details why but for all expected block
+     * ciphers iv length, key length, and block length should always be the same so don't expect this to be an issue.
+     *
      * @param string $data
      *
      * @return string
      */
     private function removePadding(string $data): string
     {
-        $size = mcrypt_get_block_size($this->cipher, MCRYPT_MODE_CBC) + 1;
+        $size = openssl_cipher_iv_length($this->cipher) + 1;
         $padding = substr($data, -1);
         // Pads to next block so no more than $size chars added.
         if ($size >= ord($padding)) {
@@ -420,7 +435,7 @@ class EncryptionHelper
     /**
      * @var string $cipher Which cipher is being used.
      */
-    private $cipher = MCRYPT_DES;
+    private $cipher = 'DES-CBC';
     /**
      * Initialization vector use for encryption and decryption.
      *

@@ -1,11 +1,11 @@
 <?php
-declare(strict_types = 1);
+declare(strict_types=1);
+
 namespace Spec\EncryptionHelper;
 
 use EncryptionHelper\EncryptionHelper;
 use PhpSpec\ObjectBehavior;
 
-//use Prophecy\Argument;
 /**
  * Class EncryptionHelperSpec
  *
@@ -161,6 +161,23 @@ class EncryptionHelperSpec extends ObjectBehavior
         $given = 'IDoNotExist';
         $message = sprintf('Cipher %s is not known', $given);
         $this->shouldThrow(new \RangeException($message))
+             ->during('setCipher', [$given]);
+    }
+    public function it_throws_exception_in_set_cipher_when_iv_is_to_short_for_new_cipher()
+    {
+        $this->setKey('abcdef0123456789');
+        $given = 'aes-256-cbc';
+        $message = 'Cipher could not be changed because either current key or initialization vector are not'
+            . ' compatible with new cipher';
+        $this->shouldThrow(new \RangeException($message, 1))
+             ->during('setCipher', [$given]);
+    }
+    public function it_throws_exception_in_set_cipher_when_key_is_to_short_for_new_cipher()
+    {
+        $given = 'aes-256-cbc';
+        $message = 'Cipher could not be changed because either current key or initialization vector are not'
+            . ' compatible with new cipher';
+        $this->shouldThrow(new \RangeException($message, 1))
              ->during('setCipher', [$given]);
     }
     public function it_throws_exception_in_set_init_vector_when_iv_is_to_short()
