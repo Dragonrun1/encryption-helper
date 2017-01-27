@@ -29,7 +29,7 @@
     },
     "minimum-stability": "stable",
     "require": {
-        "ext-mcrypt": "*",
+        "ext-openssl": "*",
         "php": ">7.0,<7.2"
     },
     "require-dev": {
