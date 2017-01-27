@@ -7,7 +7,7 @@ declare(strict_types=1);
  *
  * LICENSE:
  * This file is part of Encryption Helper - Use to help with the encryption and decryption of GET queries.
- * Copyright (C) 2016 Michael Cummings
+ * Copyright (C) 2016-2017 Michael Cummings
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License as published by the Free
@@ -32,7 +32,7 @@ declare(strict_types=1);
  * LICENSE file.
  *
  * @author    Michael Cummings <mgcummings@yahoo.com>
- * @copyright 2016 Michael Cummings
+ * @copyright 2016-2017 Michael Cummings
  * @license   GPL-2.0
  */
 
